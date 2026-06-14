@@ -1,0 +1,44 @@
+# ─── Environment Variables ───────────────────────────────────
+.env
+# (Keep .env.example — it's safe to commit)
+
+# ─── Python ──────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+*.egg
+
+# ─── Virtual Environment ─────────────────────────────────────
+venv/
+env/
+.venv/
+.env/
+
+# ─── SQLite Local Database ───────────────────────────────────
+*.db
+*.sqlite3
+
+# ─── Uploaded Images (local only) ────────────────────────────
+static/uploads/
+
+# ─── VS Code ─────────────────────────────────────────────────
+.vscode/settings.json
+.vscode/extensions.json
+
+# ─── OS Files ────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ─── Vercel ──────────────────────────────────────────────────
+.vercel/
+
+# ─── Netlify ─────────────────────────────────────────────────
+.netlify/
+
+# ─── Logs ────────────────────────────────────────────────────
+*.log

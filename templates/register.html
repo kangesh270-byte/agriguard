@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="py-5" style="background: linear-gradient(to bottom, var(--primary-light) 0%, transparent 100%); min-height: 90vh; display: flex; align-items: center;">
+    <div class="container py-4">
+        <div class="row justify-content-center">
+            <div class="col-md-7 col-lg-6">
+                <div class="card border-0 shadow-premium p-4 rounded-4 bg-white">
+                    <div class="text-center mb-4">
+                        <i class="bi bi-person-plus-fill text-success fs-1"></i>
+                        <h2 class="fw-bold mt-2" data-i18n="register_link">Register</h2>
+                        <p class="text-muted small">Join thousands of farmers protecting their harvests with AI</p>
+                    </div>
+                    
+                    <form action="{{ url_for('register') }}" method="POST">
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label for="name" class="form-label form-label-custom">Full Name</label>
+                                <input type="text" class="form-control form-control-custom" id="name" name="name" required placeholder="John Doe">
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="email" class="form-label form-label-custom">Email Address</label>
+                                <input type="email" class="form-control form-control-custom" id="email" name="email" required placeholder="name@email.com">
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="phone" class="form-label form-label-custom">Phone Number</label>
+                                <input type="tel" class="form-control form-control-custom" id="phone" name="phone" required placeholder="9876543210">
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="password" class="form-label form-label-custom">Password</label>
+                                <input type="password" class="form-control form-control-custom" id="password" name="password" required placeholder="••••••••">
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="confirm_password" class="form-label form-label-custom">Confirm Password</label>
+                                <input type="password" class="form-control form-control-custom" id="confirm_password" name="confirm_password" required placeholder="••••••••">
+                            </div>
+                        </div>
+                        
+                        <div class="form-check my-4">
+                            <input class="form-check-input" type="checkbox" id="terms" required>
+                            <label class="form-check-label text-muted small" for="terms">
+                                I agree to the <a href="#" class="text-success text-decoration-none">Terms of Service</a> and <a href="#" class="text-success text-decoration-none">Privacy Policy</a>
+                            </label>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary-custom w-100 py-2 fs-6">Sign Up</button>
+                    </form>
+                    
+                    <div class="text-center mt-4">
+                        <p class="text-muted small mb-0">Already have an account? <a href="{{ url_for('login') }}" class="text-success text-decoration-none fw-bold" data-i18n="login_link">Login here</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

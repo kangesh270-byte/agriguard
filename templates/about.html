@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- About Header -->
+<section class="py-5 text-center text-white" style="background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-color) 100%);">
+    <div class="container py-4">
+        <h1 class="display-5 fw-bold" data-i18n="about_link">About AgriGuard AI</h1>
+        <p class="lead text-white-50">Discover how artificial intelligence is transforming sustainable agriculture for farmers worldwide.</p>
+    </div>
+</section>
+
+<!-- Content Section -->
+<section class="py-5">
+    <div class="container py-4">
+        <div class="row align-items-center g-5 mb-5">
+            <div class="col-lg-6">
+                <span class="badge bg-success-subtle text-success px-3 py-2 rounded-pill uppercase fw-bold mb-2">Our Technology</span>
+                <h2 class="fw-bold text-success mb-3">What is AI Crop Disease Detection?</h2>
+                <p class="text-muted">
+                    AI Crop Disease Detection uses state-of-the-art computer vision models to scan crop leaf images and analyze visual characteristics like spots, discoloration, lesions, and mold. By comparing these markers against a vast agricultural database, our platform identifies specific pathogens in seconds.
+                </p>
+                <p class="text-muted">
+                    This empowers farmers to act immediately before infections propagate throughout fields, securing harvests and preventing substantial financial losses.
+                </p>
+            </div>
+            <div class="col-lg-6">
+                <img src="https://images.unsplash.com/photo-1560493676-04071c5f467b?q=80&w=800&auto=format&fit=crop" alt="Smart Farming Technology" class="img-fluid rounded-4 shadow-premium">
+            </div>
+        </div>
+
+        <div class="row align-items-center g-5 flex-lg-row-reverse mb-5">
+            <div class="col-lg-6">
+                <span class="badge bg-success-subtle text-success px-3 py-2 rounded-pill uppercase fw-bold mb-2">Farmer Benefits</span>
+                <h2 class="fw-bold text-success mb-3">How AI Empowers Farmers</h2>
+                <div class="d-flex flex-column gap-3 mt-3">
+                    <div class="d-flex gap-3">
+                        <div class="metric-icon flex-shrink-0" style="width: 40px; height: 40px;"><i class="bi bi-clock-history"></i></div>
+                        <div>
+                            <h6 class="fw-bold mb-1">Early Warnings</h6>
+                            <p class="small text-muted mb-0">Identify Blight, Rust, and Spot conditions prior to visible field-wide outbreaks.</p>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-3">
+                        <div class="metric-icon flex-shrink-0" style="width: 40px; height: 40px;"><i class="bi bi-wallet2"></i></div>
+                        <div>
+                            <h6 class="fw-bold mb-1">Reduce Chemical Costs</h6>
+                            <p class="small text-muted mb-0">Apply pesticides only when and where required, rather than uniform, expensive blanket spraying.</p>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-3">
+                        <div class="metric-icon flex-shrink-0" style="width: 40px; height: 40px;"><i class="bi bi-tree"></i></div>
+                        <div>
+                            <h6 class="fw-bold mb-1">Eco-Friendly Solutions</h6>
+                            <p class="small text-muted mb-0">Receive fertilizer recommendation schemes and organic alternatives supporting soil health.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <img src="https://images.unsplash.com/photo-1593113630400-ea4288922497?q=80&w=800&auto=format&fit=crop" alt="Farmers inspecting crops" class="img-fluid rounded-4 shadow-premium">
+            </div>
+        </div>
+
+        <div class="row g-4 text-center my-5">
+            <div class="col-md-6">
+                <div class="p-4 bg-white shadow-sm rounded-4 border border-light h-100">
+                    <i class="bi bi-eye-fill text-success fs-1 mb-2"></i>
+                    <h4 class="fw-bold text-success">Our Vision</h4>
+                    <p class="text-muted mb-0">
+                        To construct a climate-resilient global agricultural environment where even smallholder farmers have direct access to automated, AI-driven crop diagnostics.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="p-4 bg-white shadow-sm rounded-4 border border-light h-100">
+                    <i class="bi bi-bullseye text-success fs-1 mb-2"></i>
+                    <h4 class="fw-bold text-success">Our Mission</h4>
+                    <p class="text-muted mb-0">
+                        To reduce crop loss by 30% globally, minimize chemical pesticide footprints, and foster sustainable farming methods through instant machine learning applications.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="py-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <span class="badge bg-success-subtle text-success px-3 py-2 rounded-pill uppercase fw-bold mb-2">Scan</span>
+            <h1 class="display-6 fw-bold" data-i18n="detect_title">Scan Your Crop Leaf</h1>
+            <p class="text-muted" data-i18n="detect_subtitle">Upload a clear photo of the infected crop leaf to identify the disease using AI.</p>
+        </div>
+        
+        <div class="row g-4 justify-content-center">
+            <div class="col-lg-8">
+                <!-- Upload Card -->
+                <div class="card border-0 shadow-premium p-4 rounded-4 position-relative">
+                    <form id="upload-form" enctype="multipart/form-data">
+                        
+                        <!-- Crop Type Selector -->
+                        <div class="mb-4">
+                            <label for="crop_type" class="form-label form-label-custom" data-i18n="select_crop">Crop Type (Optional):</label>
+                            <select class="form-select form-control-custom" id="crop_type" name="crop_type">
+                                <option value="auto" data-i18n="crop_auto" selected>Auto-Detect Crop</option>
+                                <option value="Tomato" data-i18n="crop_tomato">Tomato</option>
+                                <option value="Potato" data-i18n="crop_potato">Potato</option>
+                                <option value="Corn" data-i18n="crop_corn">Corn (Maize)</option>
+                                <option value="Rice" data-i18n="crop_rice">Rice (Paddy)</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Drag & Drop Zone -->
+                        <div class="dropzone-container" id="dropzone">
+                            <div class="loading-overlay" id="loading-overlay">
+                                <div class="spinner-grow spinner-grow-custom mb-3" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                                <h6 class="fw-bold text-success" data-i18n="diagnosing">Analyzing image with AgriGuard AI...</h6>
+                                <p class="small text-muted mb-0">This may take a few seconds...</p>
+                            </div>
+                            
+                            <div id="uploader-prompt">
+                                <i class="bi bi-cloud-arrow-up-fill dropzone-icon"></i>
+                                <h5 class="fw-bold mb-2" data-i18n="drag_drop">Drag & Drop leaf image here</h5>
+                                <p class="text-muted mb-3" data-i18n="or_click">or click to browse files</p>
+                                <span class="badge bg-light-neutral text-success px-3 py-2" data-i18n="supported_formats">Supports: JPG, JPEG, PNG (Max 10MB)</span>
+                            </div>
+                            
+                            <!-- Hidden File Input -->
+                            <input type="file" id="image-input" name="image" accept=".jpg,.jpeg,.png" class="d-none">
+                            
+                            <!-- Uploaded image preview -->
+                            <img id="preview-image" src="#" alt="Leaf Preview">
+                        </div>
+                        
+                        <!-- Action Button -->
+                        <div class="text-center mt-4">
+                            <button type="submit" class="btn btn-primary-custom btn-lg w-100" id="btn-detect" disabled data-i18n="btn_detect">
+                                Detect Crop Disease
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Results Container (Initially Hidden) -->
+        <div id="results-container" class="mt-5" style="display: none;">
+            <hr class="my-5 border-light">
+            
+            <div class="text-center mb-5">
+                <span class="badge bg-success-subtle text-success px-3 py-2 rounded-pill uppercase fw-bold mb-2">Scan Result</span>
+                <h2 class="display-6 fw-bold" data-i18n="results_title">Diagnostic Report</h2>
+            </div>
+            
+            <div class="row g-4">
+                <!-- Left Column: Confidence Chart and Summary -->
+                <div class="col-lg-4">
+                    <div class="card border-0 shadow-premium p-4 rounded-4 text-center h-100">
+                        <h5 class="fw-bold mb-4" data-i18n="confidence">Confidence Level</h5>
+                        
+                        <!-- Canvas for Chart.js -->
+                        <div class="chart-container d-flex align-items-center justify-content-center position-relative mb-4">
+                            <canvas id="confidenceChartCanvas"></canvas>
+                            <div class="position-absolute fs-3 fw-bold text-success" id="res-confidence">0.0%</div>
+                        </div>
+                        
+                        <h4 class="fw-bold text-success mb-2" id="res-disease">Detected Disease</h4>
+                        <span class="badge bg-success-subtle text-success px-3 py-2 rounded-pill mb-4"><i class="bi bi-cpu"></i> AgriGuard AI Model</span>
+                        
+                        <div class="d-flex flex-column gap-2 mt-auto">
+                            <a href="#" class="btn btn-primary-custom" id="res-pdf-link" data-i18n="btn_download_pdf">
+                                <i class="bi bi-file-earmark-pdf-fill me-2"></i> Download PDF Report
+                            </a>
+                            <button class="btn btn-outline-success rounded-pill py-2" onclick="window.location.reload();" data-i18n="btn_scan_again">
+                                Scan Another Leaf
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Right Column: Disease Details (Symptoms, Causes, Treatment) -->
+                <div class="col-lg-8">
+                    <div class="card border-0 shadow-premium p-4 rounded-4 h-100">
+                        <!-- Description -->
+                        <div class="mb-4">
+                            <h5 class="fw-bold text-success d-flex align-items-center gap-2 mb-2">
+                                <i class="bi bi-info-circle-fill"></i> <span data-i18n="desc_label">Disease Description</span>
+                            </h5>
+                            <p class="text-muted" id="res-desc"></p>
+                        </div>
+                        
+                        <div class="row g-4">
+                            <!-- Symptoms -->
+                            <div class="col-md-6">
+                                <div class="p-3 bg-light-neutral rounded-4 h-100 border border-light">
+                                    <h6 class="fw-bold text-success d-flex align-items-center gap-2 mb-2">
+                                        <i class="bi bi-activity"></i> <span data-i18n="symptoms_label">Key Symptoms</span>
+                                    </h6>
+                                    <ul class="text-muted small ps-3 mb-0" id="res-symptoms">
+                                    </ul>
+                                </div>
+                            </div>
+                            
+                            <!-- Causes -->
+                            <div class="col-md-6">
+                                <div class="p-3 bg-light-neutral rounded-4 h-100 border border-light">
+                                    <h6 class="fw-bold text-success d-flex align-items-center gap-2 mb-2">
+                                        <i class="bi bi-exclamation-octagon-fill"></i> <span data-i18n="causes_label">Primary Causes</span>
+                                    </h6>
+                                    <p class="text-muted small mb-0" id="res-causes"></p>
+                                </div>
+                            </div>
+                            
+                            <!-- Treatment -->
+                            <div class="col-md-6">
+                                <div class="p-3 bg-light-neutral rounded-4 h-100 border border-light">
+                                    <h6 class="fw-bold text-success d-flex align-items-center gap-2 mb-2">
+                                        <i class="bi bi-droplet-fill"></i> <span data-i18n="treatment_label">Treatment Suggestions</span>
+                                    </h6>
+                                    <ul class="text-muted small ps-3 mb-0" id="res-treatment">
+                                    </ul>
+                                </div>
+                            </div>
+                            
+                            <!-- Prevention -->
+                            <div class="col-md-6">
+                                <div class="p-3 bg-light-neutral rounded-4 h-100 border border-light">
+                                    <h6 class="fw-bold text-success d-flex align-items-center gap-2 mb-2">
+                                        <i class="bi bi-shield-fill-check"></i> <span data-i18n="prevention_label">Prevention Methods</span>
+                                    </h6>
+                                    <ul class="text-muted small ps-3 mb-0" id="res-prevention">
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Action Inputs: Fertilizers & Pesticides -->
+                        <div class="row g-4 mt-3">
+                            <div class="col-md-6">
+                                <div class="p-3 bg-success-subtle rounded-4 h-100 border border-success-subtle">
+                                    <h6 class="fw-bold text-success d-flex align-items-center gap-2 mb-2">
+                                        <i class="bi bi-flower1"></i> <span data-i18n="fertilizer_label">Recommended Fertilizer / Nutrition</span>
+                                    </h6>
+                                    <p class="text-dark small mb-0" id="res-fertilizer"></p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="p-3 bg-success-subtle rounded-4 h-100 border border-success-subtle">
+                                    <h6 class="fw-bold text-success d-flex align-items-center gap-2 mb-2">
+                                        <i class="bi bi-bugs-fill"></i> <span data-i18n="pesticide_label">Recommended Pesticide / Chemical Control</span>
+                                    </h6>
+                                    <p class="text-dark small mb-0" id="res-pesticide"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

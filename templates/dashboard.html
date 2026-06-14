@@ -1,0 +1,260 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="py-4">
+    <div class="container">
+        <!-- Dashboard Header -->
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+            <div>
+                <h1 class="display-6 fw-bold mb-1"><span data-i18n="welcome">Welcome back,</span> {{ session.get('user_name') }}!</h1>
+                <p class="text-muted mb-0">Monitor your crop health scan activities, local weather, and recommendations.</p>
+            </div>
+            <a href="{{ url_for('detect') }}" class="btn btn-primary-custom d-flex align-items-center gap-2">
+                <i class="bi bi-camera-fill"></i> <span data-i18n="upload_btn">Start Scan</span>
+            </a>
+        </div>
+
+        <!-- Dashboard Layout Grid -->
+        <div class="row g-4">
+            
+            <!-- Main Column (Metrics & History) -->
+            <div class="col-lg-8">
+                <!-- Metrics Row -->
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <div class="metric-card shadow-sm">
+                            <div>
+                                <h6 class="text-muted small mb-1" data-i18n="total_scans">Total Scans</h6>
+                                <h3 class="fw-bold mb-0 text-success">{{ total_scans }}</h3>
+                            </div>
+                            <div class="metric-icon">
+                                <i class="bi bi-search"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <div class="metric-card shadow-sm">
+                            <div>
+                                <h6 class="text-muted small mb-1" data-i18n="detected_diseases">Diseases Detected</h6>
+                                <h3 class="fw-bold mb-0 text-danger">{{ detected_diseases }}</h3>
+                            </div>
+                            <div class="metric-icon bg-danger-subtle text-danger">
+                                <i class="bi bi-virus"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <div class="metric-card shadow-sm">
+                            <div>
+                                <h6 class="text-muted small mb-1" data-i18n="healthy_pct">Healthy Crop Ratio</h6>
+                                <h3 class="fw-bold mb-0 text-success">{{ "%.1f"|format(healthy_pct) }}%</h3>
+                            </div>
+                            <div class="metric-icon bg-success-subtle text-success">
+                                <i class="bi bi-heart-fill"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chart.js Analysis Pane -->
+                <div class="card border-0 shadow-sm p-4 rounded-4 mb-4">
+                    <h5 class="fw-bold text-success mb-3"><i class="bi bi-bar-chart-fill me-2"></i>Scan Metrics & Diagnostic Analytics</h5>
+                    <div class="chart-container">
+                        <canvas id="dashboardAnalyticChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Recent History Table -->
+                <div class="card border-0 shadow-sm p-4 rounded-4">
+                    <h5 class="fw-bold text-success mb-3" data-i18n="recent_activity">Recent Scan History</h5>
+                    
+                    {% if not history_list %}
+                        <div class="text-center py-5">
+                            <i class="bi bi-images text-muted display-4 mb-3 d-block"></i>
+                            <p class="text-muted" data-i18n="no_history">No scans found. Start by scanning your first crop leaf!</p>
+                            <a href="{{ url_for('detect') }}" class="btn btn-success rounded-pill px-4 mt-2">Scan Now</a>
+                        </div>
+                    {% else %}
+                        <div class="table-responsive">
+                            <table class="table align-middle">
+                                <thead>
+                                    <tr class="table-light">
+                                        <th>Image</th>
+                                        <th>Disease Name</th>
+                                        <th>Confidence</th>
+                                        <th>Scan Date</th>
+                                        <th class="text-end">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in history_list %}
+                                        <tr>
+                                            <td>
+                                                <img src="/{{ item.image_path }}" alt="Crop Leaf" class="img-thumbnail rounded" style="width: 50px; height: 50px; object-fit: cover;">
+                                            </td>
+                                            <td>
+                                                <span class="fw-bold {% if 'Healthy' in item.disease_name %}text-success{% else %}text-danger{% endif %}">
+                                                    {{ item.disease_name }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-success-subtle text-success px-2 py-1">{{ "%.1f"|format(item.confidence) }}%</span>
+                                            </td>
+                                            <td class="small text-muted">{{ item.prediction_date }}</td>
+                                            <td class="text-end">
+                                                <div class="btn-group">
+                                                    <a href="{{ url_for('download_report', prediction_id=item.id) }}" class="btn btn-outline-success btn-sm" title="Download PDF Report">
+                                                        <i class="bi bi-file-earmark-pdf-fill"></i>
+                                                    </a>
+                                                    <form action="{{ url_for('delete_prediction', prediction_id=item.id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this scan from history?');" class="d-inline">
+                                                        <button type="submit" class="btn btn-outline-danger btn-sm" title="Delete Scan">
+                                                            <i class="bi bi-trash-fill"></i>
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Sidebar (Weather, Care Tips, Alerts) -->
+            <div class="col-lg-4">
+                
+                <!-- Local Farming Weather Card -->
+                <div class="card border-0 shadow-sm p-4 rounded-4 mb-4 bg-light-neutral">
+                    <h5 class="fw-bold text-success mb-3 d-flex align-items-center gap-2">
+                        <i class="bi bi-cloud-sun-fill"></i> <span data-i18n="weather_title">Local Farming Weather</span>
+                    </h5>
+                    
+                    <div id="weather-widget-content">
+                        <!-- Temp & Summary -->
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h2 class="fw-bold text-success mb-0" id="weather-temp">--°C</h2>
+                            <span class="badge bg-success text-white px-3 py-2 rounded-pill fs-6 fw-semibold" id="weather-desc">Loading Weather...</span>
+                        </div>
+                        
+                        <!-- Mini metrics -->
+                        <div class="row g-2 mb-3 text-muted small">
+                            <div class="col-6 bg-white p-2 rounded-3 text-center border border-light" id="weather-wind">
+                                Wind: -- km/h
+                            </div>
+                            <div class="col-6 bg-white p-2 rounded-3 text-center border border-light" id="weather-humidity">
+                                Humidity: --%
+                            </div>
+                        </div>
+
+                        <!-- Agricultural advice based on weather parameters -->
+                        <div class="p-3 bg-success-subtle text-success-emphasis rounded-3 small">
+                            <h6 class="fw-bold mb-1"><i class="bi bi-info-circle-fill"></i> Agri-Advisory:</h6>
+                            <p class="mb-0" id="weather-advice">Loading regional agriculture alerts...</p>
+                        </div>
+                    </div>
+                    
+                    <p class="small text-muted text-center mt-3 mb-0" data-i18n="weather_hint">Enable location for real-time agricultural recommendations.</p>
+                </div>
+
+                <!-- Crop Care Tips Section -->
+                <div class="card border-0 shadow-sm p-4 rounded-4 mb-4">
+                    <h5 class="fw-bold text-success mb-3 d-flex align-items-center gap-2">
+                        <i class="bi bi-lightbulb-fill"></i> <span data-i18n="care_tips">Daily Crop Care Tips</span>
+                    </h5>
+                    
+                    <div class="carousel slide" data-bs-ride="carousel" id="careTipsCarousel">
+                        <div class="carousel-inner">
+                            <div class="carousel-item active">
+                                <h6 class="fw-bold text-success mb-1">Tomato Calcium Input</h6>
+                                <p class="small text-muted mb-0">Apply bone meal or gypsum to soil surrounding tomato roots to prevent Blossom End Rot disease.</p>
+                            </div>
+                            <div class="carousel-item">
+                                <h6 class="fw-bold text-success mb-1">Paddy Silica Supply</h6>
+                                <p class="small text-muted mb-0">Increase soil silica levels to grow thicker rice stalks, creating natural shields against Blast fungus.</p>
+                            </div>
+                            <div class="carousel-item">
+                                <h6 class="fw-bold text-success mb-1">Corn Nitrogen Schedule</h6>
+                                <p class="small text-muted mb-0">Apply urea side-dressing in corn fields only when leaves are dry to avoid nitrogen leaf burn.</p>
+                            </div>
+                            <div class="carousel-item">
+                                <h6 class="fw-bold text-success mb-1">Drip Irrigation Rules</h6>
+                                <p class="small text-muted mb-0">Always avoid late-evening overhead watering. Moisture remaining on leaves overnight triggers fungal spores.</p>
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-end gap-2 mt-3">
+                            <button class="btn btn-outline-success btn-sm rounded-circle p-1 d-flex align-items-center justify-content-center" style="width: 28px; height: 28px;" type="button" data-bs-target="#careTipsCarousel" data-bs-slide="prev">
+                                <i class="bi bi-chevron-left"></i>
+                            </button>
+                            <button class="btn btn-outline-success btn-sm rounded-circle p-1 d-flex align-items-center justify-content-center" style="width: 28px; height: 28px;" type="button" data-bs-target="#careTipsCarousel" data-bs-slide="next">
+                                <i class="bi bi-chevron-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pest Alert Notification Cards -->
+                <div class="card border-0 shadow-sm p-4 rounded-4 border-start border-danger border-5">
+                    <h5 class="fw-bold text-danger mb-3 d-flex align-items-center gap-2">
+                        <i class="bi bi-bell-fill"></i> Regional Pest Alerts
+                    </h5>
+                    <div class="d-flex flex-column gap-3">
+                        <div class="bg-danger-subtle p-2 rounded-3 border border-danger-subtle">
+                            <h6 class="fw-bold text-danger mb-1 small"><i class="bi bi-bug"></i> Fall Armyworm Threat</h6>
+                            <p class="small text-danger-emphasis mb-0" style="font-size: 0.78rem;">High armyworm populations reported in neighboring corn crops. Inspect plant whorls daily.</p>
+                        </div>
+                        <div class="bg-warning-subtle p-2 rounded-3 border border-warning-subtle">
+                            <h6 class="fw-bold text-warning-emphasis mb-1 small"><i class="bi bi-activity"></i> Late Blight Warning</h6>
+                            <p class="small text-warning-emphasis mb-0" style="font-size: 0.78rem;">High humidity conditions are accelerating Late Blight in tomato fields locally. Preventive copper spray recommended.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Script to render Chart.js chart from backend datasets -->
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const ctx = document.getElementById('dashboardAnalyticChart').getContext('2d');
+        const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim() || '#2E7D32';
+        const secondaryColor = getComputedStyle(document.documentElement).getPropertyValue('--secondary-color').trim() || '#81C784';
+        const dangerColor = getComputedStyle(document.documentElement).getPropertyValue('--danger-color').trim() || '#D32F2F';
+
+        // Load dynamic data passed from controller
+        const scanLabels = {{ scan_labels | tojson }};
+        const scanCounts = {{ scan_counts | tojson }};
+        
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: scanLabels,
+                datasets: [{
+                    label: 'Scan Frequency',
+                    data: scanCounts,
+                    backgroundColor: [primaryColor, secondaryColor, dangerColor, '#9c27b0', '#ff9800', '#00bcd4'],
+                    borderRadius: 8,
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { precision: 0 }
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

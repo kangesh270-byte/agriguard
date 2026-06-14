@@ -1,0 +1,250 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="py-4">
+    <div class="container">
+        <!-- Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1 class="display-6 fw-bold mb-1"><i class="bi bi-shield-lock-fill text-danger"></i> Admin Control Center</h1>
+                <p class="text-muted mb-0">Manage platform users, view messages, edit the disease database, and monitor system scans.</p>
+            </div>
+            <span class="badge bg-danger fs-6 py-2 px-3">Administrator Mode</span>
+        </div>
+
+        <!-- Admin Action Tabs Nav -->
+        <ul class="nav nav-tabs mb-4 gap-2 border-0" id="adminTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="btn btn-outline-success active rounded-pill px-4" id="users-tab" data-bs-toggle="tab" data-bs-target="#users-panel" type="button" role="tab" aria-controls="users-panel" aria-selected="true">
+                    <i class="bi bi-people-fill me-1"></i> Users Management
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="btn btn-outline-success rounded-pill px-4" id="diseases-tab" data-bs-toggle="tab" data-bs-target="#diseases-panel" type="button" role="tab" aria-controls="diseases-panel" aria-selected="false">
+                    <i class="bi bi-database-fill me-1"></i> Disease Database
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="btn btn-outline-success rounded-pill px-4" id="contacts-tab" data-bs-toggle="tab" data-bs-target="#contacts-panel" type="button" role="tab" aria-controls="contacts-panel" aria-selected="false">
+                    <i class="bi bi-envelope-fill me-1"></i> Contact Messages
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="btn btn-outline-success rounded-pill px-4" id="logs-tab" data-bs-toggle="tab" data-bs-target="#logs-panel" type="button" role="tab" aria-controls="logs-panel" aria-selected="false">
+                    <i class="bi bi-terminal-fill me-1"></i> Prediction Logs
+                </button>
+            </li>
+        </ul>
+
+        <!-- Tabs Panels -->
+        <div class="tab-content" id="adminTabsContent">
+            
+            <!-- Tab 1: Users Management -->
+            <div class="tab-pane fade show active" id="users-panel" role="tabpanel" aria-labelledby="users-tab">
+                <div class="card border-0 shadow-sm p-4 rounded-4 bg-white">
+                    <h5 class="fw-bold text-success mb-3"><i class="bi bi-people-fill me-2"></i>Registered Farmers & Experts</h5>
+                    <div class="table-responsive">
+                        <table class="table align-middle">
+                            <thead>
+                                <tr class="table-light">
+                                    <th>ID</th>
+                                    <th>Full Name</th>
+                                    <th>Email</th>
+                                    <th>Phone</th>
+                                    <th>Role</th>
+                                    <th>Joined Date</th>
+                                    <th class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user in users_list %}
+                                    <tr>
+                                        <td>#{{ user.id }}</td>
+                                        <td class="fw-bold">{{ user.name }}</td>
+                                        <td>{{ user.email }}</td>
+                                        <td>{{ user.phone }}</td>
+                                        <td>
+                                            <span class="badge {% if user.role == 'admin' %}bg-danger{% else %}bg-success{% endif %}">
+                                                {{ user.role | upper }}
+                                            </span>
+                                        </td>
+                                        <td class="small text-muted">{{ user.created_at }}</td>
+                                        <td class="text-end">
+                                            {% if user.role != 'admin' %}
+                                                <form action="{{ url_for('delete_user', user_id=user.id) }}" method="POST" onsubmit="return confirm('Are you sure you want to block/delete this user? All their scans will be deleted.');" class="d-inline">
+                                                    <button type="submit" class="btn btn-outline-danger btn-sm" title="Delete User">
+                                                        <i class="bi bi-trash3-fill"></i>
+                                                    </button>
+                                                </form>
+                                            {% else %}
+                                                <span class="text-muted small">System Owner</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 2: Disease Database -->
+            <div class="tab-pane fade" id="diseases-panel" role="tabpanel" aria-labelledby="diseases-tab">
+                <div class="card border-0 shadow-sm p-4 rounded-4 bg-white">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="fw-bold text-success mb-0"><i class="bi bi-database-fill me-2"></i>Crop Disease Directory</h5>
+                    </div>
+                    
+                    <div class="row g-4">
+                        {% for disease in diseases_list %}
+                            <div class="col-md-6 col-lg-4">
+                                <div class="card border border-light shadow-sm rounded-4 h-100 p-3">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <h6 class="fw-bold text-success mb-0">{{ disease.disease_name }}</h6>
+                                        <span class="badge bg-success-subtle text-success">{{ disease.crop }}</span>
+                                    </div>
+                                    <p class="small text-muted text-truncate mb-2">{{ disease.description }}</p>
+                                    
+                                    <!-- Edit Trigger Button -->
+                                    <button class="btn btn-sm btn-outline-success rounded-pill mt-auto" data-bs-toggle="modal" data-bs-target="#editDiseaseModal{{ disease.id }}">
+                                        <i class="bi bi-pencil-square"></i> Edit Details
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Edit Disease Modal -->
+                            <div class="modal fade" id="editDiseaseModal{{ disease.id }}" tabindex="-1" aria-labelledby="editDiseaseModalLabel{{ disease.id }}" aria-hidden="true">
+                                <div class="modal-dialog modal-lg">
+                                    <div class="modal-content rounded-4">
+                                        <div class="modal-header border-0 bg-success-subtle">
+                                            <h5 class="modal-title fw-bold text-success" id="editDiseaseModalLabel{{ disease.id }}">Update Disease Parameters</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <form action="{{ url_for('update_disease', disease_id=disease.id) }}" method="POST">
+                                            <div class="modal-body">
+                                                <div class="row g-3">
+                                                    <div class="col-12">
+                                                        <label class="form-label form-label-custom">Disease Description</label>
+                                                        <textarea class="form-control form-control-custom" name="description" rows="3" required>{{ disease.description }}</textarea>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <label class="form-label form-label-custom">Key Symptoms</label>
+                                                        <textarea class="form-control form-control-custom" name="symptoms" rows="3" required>{{ disease.symptoms }}</textarea>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <label class="form-label form-label-custom">Primary Causes</label>
+                                                        <textarea class="form-control form-control-custom" name="causes" rows="3" required>{{ disease.causes }}</textarea>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <label class="form-label form-label-custom">Treatment Suggestions</label>
+                                                        <textarea class="form-control form-control-custom" name="treatment" rows="3" required>{{ disease.treatment }}</textarea>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <label class="form-label form-label-custom">Prevention Methods</label>
+                                                        <textarea class="form-control form-control-custom" name="prevention" rows="3" required>{{ disease.prevention }}</textarea>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <label class="form-label form-label-custom">Recommended Fertilizer / Nutrition</label>
+                                                        <input type="text" class="form-control form-control-custom" name="fertilizers" value="{{ disease.fertilizers }}" required>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <label class="form-label form-label-custom">Recommended Pesticide / Chemical Action</label>
+                                                        <input type="text" class="form-control form-control-custom" name="pesticides" value="{{ disease.pesticides }}" required>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer border-0">
+                                                <button type="button" class="btn btn-secondary rounded-pill px-3" data-bs-dismiss="modal">Close</button>
+                                                <button type="submit" class="btn btn-success rounded-pill px-4">Save Changes</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 3: Contact Messages -->
+            <div class="tab-pane fade" id="contacts-panel" role="tabpanel" aria-labelledby="contacts-tab">
+                <div class="card border-0 shadow-sm p-4 rounded-4 bg-white">
+                    <h5 class="fw-bold text-success mb-3"><i class="bi bi-envelope-fill me-2"></i>Farmers Contact Feedback</h5>
+                    
+                    {% if not contacts_list %}
+                        <div class="text-center py-5">
+                            <i class="bi bi-chat-left-dots text-muted display-4 mb-3 d-block"></i>
+                            <p class="text-muted">No messages received yet.</p>
+                        </div>
+                    {% else %}
+                        <div class="table-responsive">
+                            <table class="table align-middle">
+                                <thead>
+                                    <tr class="table-light">
+                                        <th>Name</th>
+                                        <th>Email</th>
+                                        <th>Subject</th>
+                                        <th>Message</th>
+                                        <th>Date Submitted</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for msg in contacts_list %}
+                                        <tr>
+                                            <td class="fw-bold">{{ msg.name }}</td>
+                                            <td><a href="mailto:{{ msg.email }}" class="text-success">{{ msg.email }}</a></td>
+                                            <td><span class="badge bg-light text-success-emphasis border">{{ msg.subject }}</span></td>
+                                            <td class="small">{{ msg.message }}</td>
+                                            <td class="small text-muted">{{ msg.created_at }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Tab 4: Prediction Logs -->
+            <div class="tab-pane fade" id="logs-panel" role="tabpanel" aria-labelledby="logs-tab">
+                <div class="card border-0 shadow-sm p-4 rounded-4 bg-white">
+                    <h5 class="fw-bold text-success mb-3"><i class="bi bi-terminal-fill me-2"></i>System AI Prediction Run Logs</h5>
+                    
+                    {% if not logs_list %}
+                        <div class="text-center py-5">
+                            <i class="bi bi-journals text-muted display-4 mb-3 d-block"></i>
+                            <p class="text-muted">No system logs available.</p>
+                        </div>
+                    {% else %}
+                        <div class="table-responsive" style="max-height: 500px; overflow-y: auto;">
+                            <table class="table align-middle table-sm small">
+                                <thead>
+                                    <tr class="table-light">
+                                        <th>User ID</th>
+                                        <th>IP Address</th>
+                                        <th>Detected Disease</th>
+                                        <th>Confidence</th>
+                                        <th>Timestamp</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for log in logs_list %}
+                                        <tr>
+                                            <td>{{ "Guest" if log.user_id is none or log.user_id == '' else '#' ~ log.user_id }}</td>
+                                            <td class="text-muted">{{ log.ip_address }}</td>
+                                            <td class="fw-bold text-success">{{ log.disease_name }}</td>
+                                            <td><span class="badge bg-success-subtle text-success">{{ "%.2f"|format(log.confidence) }}%</span></td>
+                                            <td class="text-muted">{{ log.timestamp }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+{% endblock %}
