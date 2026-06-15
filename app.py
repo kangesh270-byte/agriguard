@@ -1,5 +1,4 @@
 import os
-import sqlite3
 from datetime import datetime
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session, flash, send_file
 from flask_cors import CORS
@@ -99,19 +98,20 @@ def predict():
         # Insert prediction record
         cursor.execute('''
             INSERT INTO predictions (user_id, image_path, disease_name, confidence)
-            VALUES (?, ?, ?, ?)
+            VALUES (%s, %s, %s, %s)
+            RETURNING id
         ''', (user_id, filepath.replace('\\', '/'), disease_name, confidence))
-        prediction_id = cursor.lastrowid
+        prediction_id = cursor.fetchone()[0]
 
         # Log action in system prediction log
         ip_addr = request.remote_addr
         cursor.execute('''
             INSERT INTO prediction_logs (user_id, ip_address, disease_name, confidence)
-            VALUES (?, ?, ?, ?)
+            VALUES (%s, %s, %s, %s)
         ''', (user_id, ip_addr, disease_name, confidence))
 
         # Retrieve disease info from database
-        cursor.execute("SELECT * FROM diseases WHERE disease_name = ?", (disease_name,))
+        cursor.execute("SELECT * FROM diseases WHERE disease_name = %s", (disease_name,))
         disease_row = cursor.fetchone()
         conn.commit()
         conn.close()
@@ -150,7 +150,7 @@ def login():
 
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute("SELECT * FROM users WHERE email = ?", (email,))
+        cursor.execute("SELECT * FROM users WHERE email = %s", (email,))
         user = cursor.fetchone()
         conn.close()
 
@@ -185,7 +185,7 @@ def register():
         cursor = conn.cursor()
         
         # Check if email exists
-        cursor.execute("SELECT * FROM users WHERE email = ?", (email,))
+        cursor.execute("SELECT * FROM users WHERE email = %s", (email,))
         existing_user = cursor.fetchone()
 
         if existing_user:
@@ -197,7 +197,7 @@ def register():
         try:
             cursor.execute('''
                 INSERT INTO users (name, email, phone, password, role)
-                VALUES (?, ?, ?, ?, 'farmer')
+                VALUES (%s, %s, %s, %s, 'farmer')
             ''', (name, email, phone, hashed_password))
             conn.commit()
             conn.close()
@@ -220,7 +220,7 @@ def dashboard():
     # Get Scan List
     cursor.execute('''
         SELECT * FROM predictions 
-        WHERE user_id = ? 
+        WHERE user_id = %s 
         ORDER BY prediction_date DESC
     ''', (user_id,))
     scans = [dict(row) for row in cursor.fetchall()]
@@ -235,7 +235,7 @@ def dashboard():
     cursor.execute('''
         SELECT disease_name, COUNT(*) as count 
         FROM predictions 
-        WHERE user_id = ? 
+        WHERE user_id = %s 
         GROUP BY disease_name
     ''', (user_id,))
     chart_rows = cursor.fetchall()
@@ -262,7 +262,7 @@ def delete_prediction(prediction_id):
     cursor = conn.cursor()
     
     # Verify ownership before deletion
-    cursor.execute("SELECT * FROM predictions WHERE id = ? AND user_id = ?", (prediction_id, user_id))
+    cursor.execute("SELECT * FROM predictions WHERE id = %s AND user_id = %s", (prediction_id, user_id))
     pred = cursor.fetchone()
     
     if pred:
@@ -273,7 +273,7 @@ def delete_prediction(prediction_id):
         except Exception as e:
             print(f"Error deleting file: {e}")
             
-        cursor.execute("DELETE FROM predictions WHERE id = ?", (prediction_id,))
+        cursor.execute("DELETE FROM predictions WHERE id = %s", (prediction_id,))
         conn.commit()
         flash("Scan entry successfully deleted from history.", "success")
     else:
@@ -295,7 +295,7 @@ def contact():
         try:
             cursor.execute('''
                 INSERT INTO contacts (name, email, subject, message)
-                VALUES (?, ?, ?, ?)
+                VALUES (%s, %s, %s, %s)
             ''', (name, email, subject, message))
             conn.commit()
             conn.close()
@@ -347,7 +347,7 @@ def delete_user(user_id):
     cursor = conn.cursor()
     try:
         # Delete user predictions first
-        cursor.execute("SELECT image_path FROM predictions WHERE user_id = ?", (user_id,))
+        cursor.execute("SELECT image_path FROM predictions WHERE user_id = %s", (user_id,))
         preds = cursor.fetchall()
         for p in preds:
             if os.path.exists(p['image_path']):
@@ -356,7 +356,7 @@ def delete_user(user_id):
                 except Exception:
                     pass
 
-        cursor.execute("DELETE FROM users WHERE id = ?", (user_id,))
+        cursor.execute("DELETE FROM users WHERE id = %s", (user_id,))
         conn.commit()
         flash("Farmer account blocked and deleted successfully.", "success")
     except Exception as e:
@@ -382,8 +382,8 @@ def update_disease(disease_id):
     try:
         cursor.execute('''
             UPDATE diseases
-            SET description = ?, symptoms = ?, causes = ?, treatment = ?, prevention = ?, fertilizers = ?, pesticides = ?
-            WHERE id = ?
+            SET description = %s, symptoms = %s, causes = %s, treatment = %s, prevention = %s, fertilizers = %s, pesticides = %s
+            WHERE id = %s
         ''', (description, symptoms, causes, treatment, prevention, fertilizers, pesticides, disease_id))
         conn.commit()
         flash("Disease database entry successfully updated.", "success")
@@ -401,7 +401,7 @@ def download_report(prediction_id):
     cursor = conn.cursor()
     
     # Retrieve Prediction
-    cursor.execute("SELECT * FROM predictions WHERE id = ?", (prediction_id,))
+    cursor.execute("SELECT * FROM predictions WHERE id = %s", (prediction_id,))
     pred_row = cursor.fetchone()
     
     if not pred_row:
@@ -412,14 +412,14 @@ def download_report(prediction_id):
     prediction = dict(pred_row)
     
     # Retrieve Disease details
-    cursor.execute("SELECT * FROM diseases WHERE disease_name = ?", (prediction['disease_name'],))
+    cursor.execute("SELECT * FROM diseases WHERE disease_name = %s", (prediction['disease_name'],))
     disease_row = cursor.fetchone()
     
     # Retrieve Farmer email/name metadata
     user_name = "Guest Farmer"
     user_email = "guest@agriguard.com"
     if prediction['user_id']:
-        cursor.execute("SELECT name, email FROM users WHERE id = ?", (prediction['user_id'],))
+        cursor.execute("SELECT name, email FROM users WHERE id = %s", (prediction['user_id'],))
         user_row = cursor.fetchone()
         if user_row:
             user_name = user_row['name']
