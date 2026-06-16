@@ -7,7 +7,7 @@ AgriGuard helps farmers detect crop diseases using Artificial Intelligence. Farm
 
 ---
 
-## Features
+## ✨ Features
 
 - 🔍 Crop Disease Detection
 - 🌾 Crop Health Monitoring
@@ -18,28 +18,37 @@ AgriGuard helps farmers detect crop diseases using Artificial Intelligence. Farm
 
 ---
 
-## Tech Stack
+## 🛠 Tech Stack
 
-**Frontend**
+### Frontend
 - HTML
 - CSS
 - JavaScript
-- Tailwind CSS
 
-**Backend**
-- Python
-- Flask
+### Backend
+- Python (Flask)
 
-**AI/ML**
+### AI/ML
 - TensorFlow
 - OpenCV
 
-**Database**
+### Database
 - SQLite / MySQL
 
 ---
 
-## How It Works
+## 📊 Languages Used
+
+| Language | Usage |
+|----------|--------|
+| HTML | 47.0% |
+| Python | 28.3% |
+| JavaScript | 19.1% |
+| CSS | 5.6% |
+
+---
+
+## ⚙️ How It Works
 
 1. Upload a crop image.
 2. AI analyzes the image.
@@ -48,7 +57,7 @@ AgriGuard helps farmers detect crop diseases using Artificial Intelligence. Farm
 
 ---
 
-## Installation
+## 🚀 Installation
 
 ```bash
 git clone https://github.com/yourusername/AgriGuard.git
@@ -59,17 +68,17 @@ python app.py
 
 ---
 
-## Future Enhancements
+## 🔮 Future Enhancements
 
-- Mobile App
+- Mobile Application
 - AI Chatbot
 - Voice Assistant
 - Crop Yield Prediction
-- Real-Time Alerts
+- Real-Time Disease Alerts
 
 ---
 
-## Benefits
+## 🌟 Benefits
 
 - Early disease detection
 - Reduced crop loss
@@ -78,11 +87,11 @@ python app.py
 
 ---
 
-## Developer
+## 👨‍💻 Developer
 
 **Kangeshwaran**  
-B.E CSE, Nandha College of Technology
+B.E Computer Science and Engineering  
+Nandha College of Technology, Erode
 
----
-
+----
 ### 🌱 Smart Farming Starts with AgriGuard
