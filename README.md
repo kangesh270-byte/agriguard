@@ -92,6 +92,5 @@ python app.py
 **Kangeshwaran**  
 B.E Computer Science and Engineering  
 Nandha College of Technology, Erode
-
 ----
 ### 🌱 Smart Farming Starts with AgriGuard
